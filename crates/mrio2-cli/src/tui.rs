@@ -100,12 +100,22 @@ impl App {
 
     fn default_output_path(&self) -> String {
         let p = Path::new(&self.input_path);
-        let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
+        let file_name = p.file_name().and_then(|s| s.to_str()).unwrap_or("output");
+        // Strip the full CityJSON/CityJSONSeq extension (e.g. "foo.city.json" ->
+        // "foo"), not just the last one, so the output name doesn't repeat the
+        // input extension: "foo.modified.city.json", not "foo.city.modified.city.json".
+        let stem = file_name
+            .strip_suffix(".city.jsonl")
+            .or_else(|| file_name.strip_suffix(".city.json"))
+            .or_else(|| file_name.strip_suffix(".jsonl"))
+            .or_else(|| file_name.strip_suffix(".json"))
+            .unwrap_or(file_name);
         let ext = self.output_format.extension();
-        if let Some(parent) = p.parent() {
-            format!("{}/{}.modified.{}", parent.display(), stem, ext)
-        } else {
-            format!("{}.modified.{}", stem, ext)
+        match p.parent() {
+            Some(parent) if !parent.as_os_str().is_empty() => {
+                format!("{}/{}.modified.{}", parent.display(), stem, ext)
+            }
+            _ => format!("{}.modified.{}", stem, ext),
         }
     }
 
