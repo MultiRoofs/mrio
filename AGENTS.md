@@ -56,7 +56,7 @@ python3 -m http.server 8080 --directory web
 | `↑↓` / `jk` | Navigate left panel / scroll right panel |
 | `Tab` | Switch focus between panels |
 | `Enter` | Select operation (opens dialog) |
-| `s` | Save (opens path dialog, `f` toggles output format) |
+| `s` | Save (opens path dialog, `Tab` toggles output format) |
 | `q` | Quit (with confirm if unsaved) |
 | `Esc` | Cancel dialog / quit with no changes |
 
