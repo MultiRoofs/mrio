@@ -501,7 +501,7 @@ fn render_dialog(frame: &mut Frame, area: Rect, dialog: &Dialog, _app: &App) {
             let text = Paragraph::new(Text::from(vec![
                 Line::from(format!("Path: {}", display)),
                 Line::from(Span::styled(fmt_str, Style::default().fg(Color::Cyan))),
-                Line::from(" [f] toggle format"),
+                Line::from(" [Tab] toggle format"),
             ]))
             .block(block);
             frame.render_widget(text, dialog_area);
@@ -1001,7 +1001,7 @@ fn handle_dialog_key(app: &mut App, dialog: Dialog, key: event::KeyEvent) -> Res
             app.dialog = None;
         }
 
-        (Dialog::Save { .. }, KeyCode::Char('f')) => {
+        (Dialog::Save { .. }, KeyCode::Tab) => {
             let current = app.dialog.as_ref().and_then(|d| {
                 if let Dialog::Save { format, .. } = d {
                     Some(*format)
