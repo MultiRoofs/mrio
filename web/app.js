@@ -149,6 +149,9 @@ document.querySelectorAll('[data-op]').forEach(btn => {
         const ext = format === 'cityjsonseq' ? 'city.jsonl' : 'city.json';
         filenameInput.value = `${baseName}.modified.${ext}`;
       }
+      // Reset any leftover value from a previous open so closing via Cancel/Esc
+      // is not mistaken for a confirm (e.g. re-applying an old EPSG code).
+      dialog.returnValue = '';
       dialog.showModal();
     } else {
       await runOperation(op, '');
