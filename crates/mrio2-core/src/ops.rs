@@ -39,6 +39,22 @@ pub fn rename_attribute(doc: &mut CityJsonDocument, old_name: &str, new_name: &s
             is_error: true,
         };
     }
+    // Refuse to rename onto an existing attribute: it would silently overwrite
+    // (drop) the values already stored under the target name.
+    for (_id, obj) in io::get_all_city_objects(doc) {
+        if let Some(attrs) = obj.get("attributes").and_then(|v| v.as_object()) {
+            if attrs.contains_key(new_name) {
+                return OpReport {
+                    summary: format!(
+                        "Cannot rename to '{}': an attribute with that name already exists",
+                        new_name
+                    ),
+                    affected: 0,
+                    is_error: true,
+                };
+            }
+        }
+    }
     let mut count = 0;
     for (_id, obj) in io::get_all_city_objects_mut(doc) {
         if let Some(attrs) = obj

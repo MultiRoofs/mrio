@@ -327,12 +327,16 @@ document.getElementById('rename-attr-dialog').addEventListener('close', async fu
   if (this.returnValue === 'confirm') {
     const oldName = document.getElementById('rename-attr-select').value;
     const newName = document.getElementById('rename-new-name').value.trim();
-    if (oldName && newName) {
-      await runOperation('rename_attribute', `${oldName}|${newName}`);
-      document.getElementById('rename-new-name').value = '';
-    } else {
+    if (!oldName || !newName) {
       ot.toast('Please fill in both fields', 'Invalid input', { variant: 'warning' });
+      return;
     }
+    if (newName !== oldName && wasmDoc.get_attributes().includes(newName)) {
+      ot.toast(`An attribute named "${newName}" already exists`, 'Name in use', { variant: 'warning' });
+      return;
+    }
+    await runOperation('rename_attribute', `${oldName}|${newName}`);
+    document.getElementById('rename-new-name').value = '';
   }
 });
 
