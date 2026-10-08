@@ -14,12 +14,12 @@ use mrio2_core::ops;
 use mrio2_core::stats::{compute_stats, FileStats};
 
 const OPERATION_NAMES: &[&str] = &[
-    "Attribute: add roof area",
-    "Attribute: delete",
-    "Attribute: rename",
-    "Attributes: add from CSV",
+    "Add roof area",
+    "Delete attribute",
+    "Rename attribute",
+    "Import attributes from CSV",
     "Set CRS",
-    "Roofer → MultiRoofs",
+    "Prepare file for MultiRoofs",
     "Validate schema",
     "Save",
 ];
