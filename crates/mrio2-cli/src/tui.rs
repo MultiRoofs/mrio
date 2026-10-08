@@ -14,13 +14,13 @@ use mrio2_core::ops;
 use mrio2_core::stats::{compute_stats, FileStats};
 
 const OPERATION_NAMES: &[&str] = &[
+    "Prepare file for MultiRoofs",
+    "Validate schema",
     "Add roof area",
     "Delete attribute",
     "Rename attribute",
     "Import attributes from CSV",
     "Set CRS",
-    "Prepare file for MultiRoofs",
-    "Validate schema",
     "Save",
 ];
 
@@ -681,7 +681,7 @@ fn handle_events(app: &mut App) -> Result<(), String> {
             KeyCode::Enter => {
                 match app.selected_operation {
                     0 => {
-                        let report = ops::add_roof_area(&mut app.doc);
+                        let report = ops::roofer2multiroofs(&mut app.doc);
                         app.modified = true;
                         app.refresh_stats();
                         app.dialog = Some(Dialog::Message {
@@ -690,6 +690,22 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                         });
                     }
                     1 => {
+                        let report = ops::validate_schema(&app.doc);
+                        app.dialog = Some(Dialog::Validation {
+                            text: report.summary,
+                            has_errors: report.is_error,
+                        });
+                    }
+                    2 => {
+                        let report = ops::add_roof_area(&mut app.doc);
+                        app.modified = true;
+                        app.refresh_stats();
+                        app.dialog = Some(Dialog::Message {
+                            text: report.summary,
+                            is_error: report.is_error,
+                        });
+                    }
+                    3 => {
                         let attrs = collect_attribute_names(app);
                         if attrs.is_empty() {
                             app.dialog = Some(Dialog::Message {
@@ -700,7 +716,7 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                             app.dialog = Some(Dialog::RemoveAttr { attrs, selected: 0 });
                         }
                     }
-                    2 => {
+                    4 => {
                         let attrs = collect_attribute_names(app);
                         if attrs.is_empty() {
                             app.dialog = Some(Dialog::Message {
@@ -711,13 +727,13 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                             app.dialog = Some(Dialog::RenamePick { attrs, selected: 0 });
                         }
                     }
-                    3 => {
+                    5 => {
                         app.dialog = Some(Dialog::AddCsv {
                             input: String::new(),
                             cursor: 0,
                         });
                     }
-                    4 => {
+                    6 => {
                         let current = app.stats.crs.rsplit('/').next().unwrap_or("").to_string();
                         let input = if !current.is_empty()
                             && current.chars().all(|c| c.is_ascii_digit())
@@ -728,22 +744,6 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                         };
                         let cursor = input.len();
                         app.dialog = Some(Dialog::EpsgInput { input, cursor });
-                    }
-                    5 => {
-                        let report = ops::roofer2multiroofs(&mut app.doc);
-                        app.modified = true;
-                        app.refresh_stats();
-                        app.dialog = Some(Dialog::Message {
-                            text: report.summary,
-                            is_error: report.is_error,
-                        });
-                    }
-                    6 => {
-                        let report = ops::validate_schema(&app.doc);
-                        app.dialog = Some(Dialog::Validation {
-                            text: report.summary,
-                            has_errors: report.is_error,
-                        });
                     }
                     7 => {
                         let default = app.default_output_path();

@@ -48,6 +48,23 @@
         <ul class="op-list">
           <li>
             <button
+              data-op="roofer2multiroofs"
+              title="Convert Roofer output to MultiRoofs format"
+            >
+              Prepare file for MultiRoofs
+            </button>
+          </li>
+          <li>
+            <button
+              data-op="validate_schema"
+              title="Validate against CityJSON schema"
+            >
+              Validate schema
+            </button>
+          </li>
+          <li class="op-separator" role="separator" aria-hidden="true"></li>
+          <li>
+            <button
               data-op="add_roof_area"
               title="Compute and add +roof-total-area attribute"
             >
@@ -81,6 +98,7 @@
               Import attributes from CSV
             </button>
           </li>
+          <li class="op-separator" role="separator" aria-hidden="true"></li>
           <li>
             <button
               data-op="set_epsg"
@@ -88,22 +106,6 @@
               title="Set the coordinate reference system"
             >
               Set CRS
-            </button>
-          </li>
-          <li>
-            <button
-              data-op="roofer2multiroofs"
-              title="Convert Roofer output to MultiRoofs format"
-            >
-              Prepare file for MultiRoofs
-            </button>
-          </li>
-          <li>
-            <button
-              data-op="validate_schema"
-              title="Validate against CityJSON schema"
-            >
-              Validate schema
             </button>
           </li>
           <li>
