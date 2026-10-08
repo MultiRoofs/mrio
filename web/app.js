@@ -52,7 +52,7 @@ async function handleFile(file) {
       wasmDoc = new WasmDocument(content, file.name);
       dropZone.style.display = 'none';
       editor.style.display = 'grid';
-      fileInfo.textContent = file.name;
+      fileInfo.textContent = `Uploaded file: ${file.name}`;
       updateStats();
       ot.toast('File loaded successfully', 'Success', { variant: 'success' });
     } catch (err) {
