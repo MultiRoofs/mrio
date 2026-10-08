@@ -31,10 +31,29 @@ pub fn remove_attribute(doc: &mut CityJsonDocument, attr_name: &str) -> OpReport
     }
 }
 
+/// Attribute names may contain letters, digits and the separators commonly
+/// used in CityJSON/Roofer datasets (e.g. `+roof-total-area`, `b3_volume`).
+pub fn is_valid_attribute_name(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '_' | '.' | ':'))
+}
+
 pub fn rename_attribute(doc: &mut CityJsonDocument, old_name: &str, new_name: &str) -> OpReport {
     if old_name == new_name {
         return OpReport {
             summary: "Old and new names are identical".to_string(),
+            affected: 0,
+            is_error: true,
+        };
+    }
+    if !is_valid_attribute_name(new_name) {
+        return OpReport {
+            summary: format!(
+                "Invalid attribute name '{}': use only letters, digits and + - _ . :",
+                new_name
+            ),
             affected: 0,
             is_error: true,
         };

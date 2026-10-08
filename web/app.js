@@ -331,6 +331,10 @@ document.getElementById('rename-attr-dialog').addEventListener('close', async fu
       ot.toast('Please fill in both fields', 'Invalid input', { variant: 'warning' });
       return;
     }
+    if (!/^[A-Za-z0-9_+.:-]+$/.test(newName)) {
+      ot.toast('Use only letters, digits and + - _ . :', 'Invalid name', { variant: 'warning' });
+      return;
+    }
     if (newName !== oldName && wasmDoc.get_attributes().includes(newName)) {
       ot.toast(`An attribute named "${newName}" already exists`, 'Name in use', { variant: 'warning' });
       return;
