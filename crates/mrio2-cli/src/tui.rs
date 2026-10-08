@@ -18,7 +18,7 @@ const OPERATION_NAMES: &[&str] = &[
     "Attribute: delete",
     "Attribute: rename",
     "Attributes: add from CSV",
-    "CRS: set EPSG",
+    "Set CRS",
     "Roofer → MultiRoofs",
     "Validate schema",
     "Save",
