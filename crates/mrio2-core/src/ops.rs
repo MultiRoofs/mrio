@@ -119,6 +119,42 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
         }
     };
 
+    if headers.len() < 2 {
+        return OpReport {
+            summary: "CSV must have an ID column followed by at least one attribute column"
+                .to_string(),
+            affected: 0,
+            is_error: true,
+        };
+    }
+    if headers.get(0).map(|h| h.trim().is_empty()).unwrap_or(true) {
+        return OpReport {
+            summary: "CSV first column must contain CityObject IDs".to_string(),
+            affected: 0,
+            is_error: true,
+        };
+    }
+    let mut seen_names: HashSet<&str> = HashSet::new();
+    for name in headers.iter().skip(1) {
+        if !is_valid_attribute_name(name) {
+            return OpReport {
+                summary: format!(
+                    "Invalid attribute column '{}': use only letters, digits and + - _ . :",
+                    name
+                ),
+                affected: 0,
+                is_error: true,
+            };
+        }
+        if !seen_names.insert(name) {
+            return OpReport {
+                summary: format!("Duplicate attribute column '{}'", name),
+                affected: 0,
+                is_error: true,
+            };
+        }
+    }
+
     let attr_names: Vec<String> = headers.iter().skip(1).map(|s| s.to_string()).collect();
 
     // Read every row first, keyed by CityObject id. Previously the code scanned
