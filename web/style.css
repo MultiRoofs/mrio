@@ -231,6 +231,16 @@ body {
   opacity: 0.75;
 }
 
+.large-file-warning {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--warning, #fff3cd);
+  color: var(--warning-text, #664d03);
+  border: 1px solid var(--warning-border, #ffe69c);
+  font-size: var(--text-2, 0.9rem);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

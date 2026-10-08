@@ -68,8 +68,26 @@ function updateStats() {
   try {
     const stats = wasmDoc.get_stats();
     renderStats(stats);
+    updateLargeFileWarning(stats);
   } catch (err) {
     statsContent.innerHTML = `<div role="alert" data-variant="error"><strong>Error:</strong> ${err}</div>`;
+  }
+}
+
+// Above this many objects the browser build becomes slow/heavy; point users at
+// the TUI/desktop version instead.
+const LARGE_FILE_OBJECT_LIMIT = 20000;
+
+function updateLargeFileWarning(stats) {
+  const banner = document.getElementById('large-file-warning');
+  if (!banner) return;
+  if (stats.total_objects > LARGE_FILE_OBJECT_LIMIT) {
+    banner.textContent =
+      `Large file: ${stats.total_objects.toLocaleString()} objects. ` +
+      'The web app is best for small files — for large datasets use the TUI/desktop version.';
+    banner.hidden = false;
+  } else {
+    banner.hidden = true;
   }
 }
 
@@ -416,6 +434,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   dropZone.style.display = 'flex';
   fileInfo.textContent = '';
   fileInput.value = '';
+  document.getElementById('large-file-warning').hidden = true;
   statsContent.innerHTML = '<p>Loading file information...</p>';
   statsContent.setAttribute('aria-busy', 'true');
   statsContent.setAttribute('data-spinner', 'large overlay');
