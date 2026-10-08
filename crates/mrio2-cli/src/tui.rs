@@ -718,10 +718,16 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                         });
                     }
                     4 => {
-                        app.dialog = Some(Dialog::EpsgInput {
-                            input: String::new(),
-                            cursor: 0,
-                        });
+                        let current = app.stats.crs.rsplit('/').next().unwrap_or("").to_string();
+                        let input = if !current.is_empty()
+                            && current.chars().all(|c| c.is_ascii_digit())
+                        {
+                            current
+                        } else {
+                            String::new()
+                        };
+                        let cursor = input.len();
+                        app.dialog = Some(Dialog::EpsgInput { input, cursor });
                     }
                     5 => {
                         let report = ops::roofer2multiroofs(&mut app.doc);

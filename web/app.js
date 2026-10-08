@@ -149,6 +149,17 @@ document.querySelectorAll('[data-op]').forEach(btn => {
         const ext = format === 'cityjsonseq' ? 'city.jsonl' : 'city.json';
         filenameInput.value = `${baseName}.modified.${ext}`;
       }
+      if (op === 'set_epsg') {
+        const crs = wasmDoc.get_stats().crs || '';
+        const code = crs.split('/').pop().trim();
+        const isCode = /^\d+$/.test(code);
+        const input = document.getElementById('epsg-input');
+        input.value = '';
+        input.placeholder = isCode ? `current: ${code}` : 'e.g. 28992';
+        document.getElementById('epsg-desc').textContent = isCode
+          ? `Current CRS: EPSG:${code}. Enter a new EPSG code to replace it.`
+          : 'Enter the EPSG code for the coordinate reference system.';
+      }
       // Reset any leftover value from a previous open so closing via Cancel/Esc
       // is not mistaken for a confirm (e.g. re-applying an old EPSG code).
       dialog.returnValue = '';
