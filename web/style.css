@@ -225,6 +225,12 @@ body {
   border-left: 4px solid var(--accent);
 }
 
+.stats-note {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-2, 0.85rem);
+  opacity: 0.75;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
