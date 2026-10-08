@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use serde_json::{Map, Value};
 
 use crate::io;
@@ -120,14 +120,12 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
     };
 
     let attr_names: Vec<String> = headers.iter().skip(1).map(|s| s.to_string()).collect();
-    let mut id_map: HashMap<String, usize> = HashMap::new();
-    let objects = io::get_all_city_objects_mut(doc);
-    for (i, (id, _obj)) in objects.iter().enumerate() {
-        id_map.insert(id.clone(), i);
-    }
-    drop(objects);
 
-    let mut updated_count = 0;
+    // Read every row first, keyed by CityObject id. Previously the code scanned
+    // all objects for every row (O(rows × objects)), which was very slow and
+    // crashed the WASM build on large CSVs.
+    let mut rows: HashMap<String, Vec<String>> = HashMap::new();
+    let mut row_order: Vec<String> = Vec::new();
     let mut error_count = 0;
     let mut errors = Vec::new();
 
@@ -142,42 +140,52 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
         };
 
         let obj_id = record.get(0).unwrap_or_default().to_string();
-        let obj_index = match id_map.get(&obj_id) {
-            Some(&i) => i,
-            None => {
-                errors.push(format!(
-                    "Row {}: CityObject '{}' not found",
-                    row_idx + 2,
-                    obj_id
-                ));
-                error_count += 1;
-                continue;
-            }
-        };
+        if obj_id.is_empty() {
+            errors.push(format!("Row {}: missing CityObject id", row_idx + 2));
+            error_count += 1;
+            continue;
+        }
+        let values: Vec<String> = (0..attr_names.len())
+            .map(|i| record.get(i + 1).unwrap_or_default().to_string())
+            .collect();
+        if rows.insert(obj_id.clone(), values).is_none() {
+            row_order.push(obj_id);
+        }
+    }
 
-        let objects2 = io::get_all_city_objects_mut(doc);
-        if let Some((_id, obj)) = objects2.into_iter().nth(obj_index) {
-            let attrs = obj
-                .get_mut("attributes")
-                .and_then(|v| v.as_object_mut());
-            if let Some(attrs) = attrs {
-                for (i, attr_name) in attr_names.iter().enumerate() {
-                    let val_str = record.get(i + 1).unwrap_or_default();
-                    let val = parse_csv_value(val_str);
-                    attrs.insert(attr_name.clone(), val);
-                }
-                updated_count += 1;
-            } else {
-                let mut new_attrs = Map::new();
-                for (i, attr_name) in attr_names.iter().enumerate() {
-                    let val_str = record.get(i + 1).unwrap_or_default();
-                    let val = parse_csv_value(val_str);
-                    new_attrs.insert(attr_name.clone(), val);
-                }
-                obj.as_object_mut()
-                    .map(|m| m.insert("attributes".to_string(), Value::Object(new_attrs)));
-                updated_count += 1;
+    // Apply all rows in a single pass over the CityObjects.
+    let mut updated_count = 0;
+    let mut matched: HashSet<String> = HashSet::new();
+    for (id, obj) in io::get_all_city_objects_mut(doc) {
+        let values = match rows.get(&id) {
+            Some(v) => v,
+            None => continue,
+        };
+        matched.insert(id.clone());
+
+        let plain_attrs = obj.get_mut("attributes").and_then(|v| v.as_object_mut());
+        if let Some(attrs) = plain_attrs {
+            for (i, attr_name) in attr_names.iter().enumerate() {
+                let val = parse_csv_value(values.get(i).map(String::as_str).unwrap_or(""));
+                attrs.insert(attr_name.clone(), val);
             }
+        } else {
+            let mut new_attrs = Map::new();
+            for (i, attr_name) in attr_names.iter().enumerate() {
+                let val = parse_csv_value(values.get(i).map(String::as_str).unwrap_or(""));
+                new_attrs.insert(attr_name.clone(), val);
+            }
+            obj.as_object_mut()
+                .map(|m| m.insert("attributes".to_string(), Value::Object(new_attrs)));
+        }
+        updated_count += 1;
+    }
+
+    // Rows referring to CityObjects that do not exist in the document.
+    for id in &row_order {
+        if !matched.contains(id) {
+            errors.push(format!("CityObject '{}' not found", id));
+            error_count += 1;
         }
     }
 
