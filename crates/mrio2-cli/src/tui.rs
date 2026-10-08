@@ -55,7 +55,6 @@ enum Dialog {
     Validation {
         text: String,
         has_errors: bool,
-        has_warnings: bool,
     },
     ConfirmQuit,
     ConfirmOverwrite {
@@ -598,17 +597,11 @@ fn render_dialog(frame: &mut Frame, area: Rect, dialog: &Dialog, _app: &App) {
             .wrap(Wrap { trim: false });
             frame.render_widget(paragraph, dialog_area);
         }
-        Dialog::Validation {
-            text,
-            has_errors,
-            has_warnings,
-        } => {
+        Dialog::Validation { text, has_errors } => {
             let (title, color) = if *has_errors {
-                (" Validation — Errors ", Color::Red)
-            } else if *has_warnings {
-                (" Validation — Warnings ", Color::Yellow)
+                (" Schema Validation — Errors ", Color::Red)
             } else {
-                (" Validation — OK ", Color::Green)
+                (" Schema Validation ", Color::White)
             };
             let block = Block::default()
                 .title(title)
@@ -741,11 +734,9 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                     }
                     6 => {
                         let report = ops::validate_schema(&app.doc);
-                        let has_warnings = report.summary.contains("[warning]");
                         app.dialog = Some(Dialog::Validation {
                             text: report.summary,
                             has_errors: report.is_error,
-                            has_warnings,
                         });
                     }
                     7 => {

@@ -297,6 +297,10 @@ body {
   border-radius: var(--radius-md);
 }
 
+#validation-title {
+  font-weight: 700;
+}
+
 .validation-item {
   display: flex;
   align-items: flex-start;

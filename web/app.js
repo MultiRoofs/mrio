@@ -231,12 +231,9 @@ async function runOperation(op, param) {
       if (result.is_error) {
         validationTitle.textContent = 'Schema Validation — Errors';
         validationTitle.style.color = 'var(--danger)';
-      } else if (result.summary.includes('[warning]')) {
-        validationTitle.textContent = 'Schema Validation — Warnings';
-        validationTitle.style.color = 'var(--warning)';
       } else {
-        validationTitle.textContent = 'Schema Validation — OK';
-        validationTitle.style.color = 'var(--success)';
+        validationTitle.textContent = 'Schema Validation';
+        validationTitle.style.color = '';
       }
     } else {
       const result = wasmDoc.run_operation(op, param);
