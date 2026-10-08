@@ -310,6 +310,22 @@
           <h3 id="validation-title">Schema Validation</h3>
         </header>
         <div id="validation-output" class="validation-list"></div>
+        <details class="validation-help">
+          <summary>What do these checks mean?</summary>
+          <dl>
+            <dt>json_syntax</dt><dd>The file is valid JSON.</dd>
+            <dt>schema</dt><dd>The document conforms to the official CityJSON 2.0.2 JSON schema.</dd>
+            <dt>extensions</dt><dd>Every declared extension schema is available and satisfied.</dd>
+            <dt>parents_children_consistency</dt><dd>CityObjects reference existing parents/children.</dd>
+            <dt>wrong_vertex_index</dt><dd>Geometry boundary indices point to existing vertices.</dd>
+            <dt>semantics_arrays</dt><dd>Per-surface semantic values match the number of surfaces.</dd>
+            <dt>textures</dt><dd>Texture references and vertex indices are valid.</dd>
+            <dt>materials</dt><dd>Material references and vertex indices are valid.</dd>
+            <dt>extra_root_properties</dt><dd>No non-standard properties at the document root.</dd>
+            <dt>duplicate_vertices</dt><dd>No two vertices share identical coordinates (warning only).</dd>
+            <dt>unused_vertices</dt><dd>All vertices are referenced by at least one geometry (warning only).</dd>
+          </dl>
+        </details>
         <footer>
           <button value="close">Close</button>
         </footer>
