@@ -93,6 +93,20 @@ body {
   margin-bottom: var(--space-5);
 }
 
+.drop-zone-content .welcome-intro,
+.drop-zone-content .welcome-note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-2, 0.85rem);
+  color: var(--muted-foreground);
+  max-width: 46rem;
+  line-height: 1.5;
+}
+
+.drop-zone-content .welcome-ack {
+  font-size: var(--text-1, 0.78rem);
+  opacity: 0.8;
+}
+
 .editor-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
