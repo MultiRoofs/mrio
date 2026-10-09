@@ -8,13 +8,13 @@ use ratatui::{
 };
 use std::path::Path;
 
-use mrio2_core::io;
-use mrio2_core::model::{CityJsonDocument, OutputFormat};
-use mrio2_core::ops;
-use mrio2_core::stats::{compute_stats, FileStats};
+use mrio_core::io;
+use mrio_core::model::{CityJsonDocument, OutputFormat};
+use mrio_core::ops;
+use mrio_core::stats::{compute_stats, FileStats};
 
 const OPERATION_NAMES: &[&str] = &[
-    "Prepare file for MultiRoofs",
+    "Roofer → MultiRoofs",
     "Validate schema",
     "Add roof area",
     "Delete attribute",
@@ -193,7 +193,7 @@ fn render_title_bar(frame: &mut Frame, area: Rect, app: &App) {
     let fmt = app.output_format.label();
     let modified = if app.modified { " *" } else { "" };
     let title = format!(
-        " mrio2 v{} — {}{}  [{}]  (CityJSON v{})",
+        " mrio v{} — {}{}  [{}]  (CityJSON v{})",
         env!("CARGO_PKG_VERSION"),
         Path::new(&app.input_path)
             .file_name()
@@ -520,7 +520,8 @@ fn render_dialog(frame: &mut Frame, area: Rect, dialog: &Dialog, _app: &App) {
             ));
         }
         Dialog::ConfirmOverwrite {
-            ref path, format: _,
+            ref path,
+            format: _,
         } => {
             let block = Block::default()
                 .title(" File Exists ")
@@ -752,10 +753,50 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                             cursor: 0,
                             format: app.output_format,
                         });
+                    } else {
+                        app.dialog = Some(Dialog::RenamePick { attrs, selected: 0 });
                     }
-                    _ => {}
                 }
-            }
+                4 => {
+                    app.dialog = Some(Dialog::AddCsv {
+                        input: String::new(),
+                        cursor: 0,
+                    });
+                }
+                5 => {
+                    app.dialog = Some(Dialog::EpsgInput {
+                        input: String::new(),
+                        cursor: 0,
+                    });
+                }
+                6 => {
+                    let report = ops::roofer2multiroofs(&mut app.doc);
+                    app.modified = true;
+                    app.refresh_stats();
+                    app.dialog = Some(Dialog::Message {
+                        text: report.summary,
+                        is_error: report.is_error,
+                    });
+                }
+                7 => {
+                    let report = ops::validate_schema(&app.doc);
+                    let has_warnings = report.summary.contains("[warning]");
+                    app.dialog = Some(Dialog::Validation {
+                        text: report.summary,
+                        has_errors: report.is_error,
+                        has_warnings,
+                    });
+                }
+                8 => {
+                    let default = app.default_output_path();
+                    app.dialog = Some(Dialog::Save {
+                        input: default,
+                        cursor: 0,
+                        format: app.output_format,
+                    });
+                }
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -942,7 +983,8 @@ fn handle_dialog_key(app: &mut App, dialog: Dialog, key: event::KeyEvent) -> Res
         (Dialog::AddCsv { .. }, KeyCode::Backspace) => {
             if let Some(Dialog::AddCsv {
                 ref mut input,
-                ref mut cursor, ..
+                ref mut cursor,
+                ..
             }) = app.dialog
             {
                 if *cursor > 0 {
@@ -954,7 +996,8 @@ fn handle_dialog_key(app: &mut App, dialog: Dialog, key: event::KeyEvent) -> Res
         (Dialog::AddCsv { .. }, KeyCode::Delete) => {
             if let Some(Dialog::AddCsv {
                 ref mut input,
-                ref mut cursor, ..
+                ref mut cursor,
+                ..
             }) = app.dialog
             {
                 if *cursor < input.len() {
@@ -1174,10 +1217,7 @@ fn handle_dialog_key(app: &mut App, dialog: Dialog, key: event::KeyEvent) -> Res
             }
         }
         (Dialog::EpsgInput { .. }, KeyCode::Left) => {
-            if let Some(Dialog::EpsgInput {
-                ref mut cursor, ..
-            }) = app.dialog
-            {
+            if let Some(Dialog::EpsgInput { ref mut cursor, .. }) = app.dialog {
                 *cursor = cursor.saturating_sub(1);
             }
         }

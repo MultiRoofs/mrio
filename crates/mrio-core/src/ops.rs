@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use serde_json::{Map, Value};
+use std::collections::HashMap;
 
 use crate::io;
 use crate::model::CityJsonDocument;
@@ -15,10 +16,7 @@ pub struct OpReport {
 pub fn remove_attribute(doc: &mut CityJsonDocument, attr_name: &str) -> OpReport {
     let mut count = 0;
     for (_id, obj) in io::get_all_city_objects_mut(doc) {
-        if let Some(attrs) = obj
-            .get_mut("attributes")
-            .and_then(|v| v.as_object_mut())
-        {
+        if let Some(attrs) = obj.get_mut("attributes").and_then(|v| v.as_object_mut()) {
             if attrs.remove(attr_name).is_some() {
                 count += 1;
             }
@@ -76,10 +74,7 @@ pub fn rename_attribute(doc: &mut CityJsonDocument, old_name: &str, new_name: &s
     }
     let mut count = 0;
     for (_id, obj) in io::get_all_city_objects_mut(doc) {
-        if let Some(attrs) = obj
-            .get_mut("attributes")
-            .and_then(|v| v.as_object_mut())
-        {
+        if let Some(attrs) = obj.get_mut("attributes").and_then(|v| v.as_object_mut()) {
             if let Some(val) = attrs.remove(old_name) {
                 attrs.insert(new_name.to_string(), val);
                 count += 1;
@@ -176,28 +171,7 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
         };
 
         let obj_id = record.get(0).unwrap_or_default().to_string();
-        if obj_id.is_empty() {
-            errors.push(format!("Row {}: missing CityObject id", row_idx + 2));
-            error_count += 1;
-            continue;
-        }
-        let values: Vec<String> = (0..attr_names.len())
-            .map(|i| record.get(i + 1).unwrap_or_default().to_string())
-            .collect();
-        if rows.insert(obj_id.clone(), values).is_none() {
-            row_order.push(obj_id);
-        }
-    }
-
-    // Apply all rows in a single pass over the CityObjects.
-    let mut updated_count = 0;
-    let mut matched: HashSet<String> = HashSet::new();
-    for (id, obj) in io::get_all_city_objects_mut(doc) {
-        let values = match rows.get(&id) {
-            Some(v) => v,
-            None => continue,
         };
-        matched.insert(id.clone());
 
         let plain_attrs = obj.get_mut("attributes").and_then(|v| v.as_object_mut());
         if let Some(attrs) = plain_attrs {
@@ -211,24 +185,10 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
                 let val = parse_csv_value(values.get(i).map(String::as_str).unwrap_or(""));
                 new_attrs.insert(attr_name.clone(), val);
             }
-            obj.as_object_mut()
-                .map(|m| m.insert("attributes".to_string(), Value::Object(new_attrs)));
-        }
-        updated_count += 1;
-    }
-
-    // Rows referring to CityObjects that do not exist in the document.
-    for id in &row_order {
-        if !matched.contains(id) {
-            errors.push(format!("CityObject '{}' not found", id));
-            error_count += 1;
         }
     }
 
-    let mut summary = format!(
-        "Added attributes to {} object(s) from CSV",
-        updated_count,
-    );
+    let mut summary = format!("Added attributes to {} object(s) from CSV", updated_count,);
     if error_count > 0 {
         summary.push_str(&format!("\n{} error(s):", error_count));
         for e in errors {
@@ -301,9 +261,7 @@ pub fn roofer2multiroofs(doc: &mut CityJsonDocument) -> OpReport {
 
     let part_ids: Vec<String> = city_objects
         .iter()
-        .filter(|(_, v)| {
-            v.get("type").and_then(|t| t.as_str()) == Some("BuildingPart")
-        })
+        .filter(|(_, v)| v.get("type").and_then(|t| t.as_str()) == Some("BuildingPart"))
         .map(|(k, _)| k.clone())
         .collect();
 
@@ -367,9 +325,7 @@ pub fn roofer2multiroofs(doc: &mut CityJsonDocument) -> OpReport {
     for (_id, obj) in city_objects.iter_mut() {
         let roof_area = compute_roof_area(obj, &vertices_arr, &scale, &translate);
         if roof_area > 0.0 {
-            let attrs = obj
-                .get_mut("attributes")
-                .and_then(|v| v.as_object_mut());
+            let attrs = obj.get_mut("attributes").and_then(|v| v.as_object_mut());
             if let Some(attrs) = attrs {
                 attrs.insert(
                     "+roof-total-area".to_string(),
@@ -400,10 +356,14 @@ pub fn roofer2multiroofs(doc: &mut CityJsonDocument) -> OpReport {
     let ext_name = "multiroofs";
     let ext_value = serde_json::json!({
         "url": "https://raw.githubusercontent.com/MultiRoofs/cityjson-extension/refs/heads/main/multiroofs.ext.json",
-        "version": "0.1.0"
+        "version": "0.2.0"
     });
 
-    if let Some(exts) = doc.header.get_mut("extensions").and_then(|v| v.as_object_mut()) {
+    if let Some(exts) = doc
+        .header
+        .get_mut("extensions")
+        .and_then(|v| v.as_object_mut())
+    {
         if !exts.contains_key(ext_name) {
             exts.insert(ext_name.to_string(), ext_value);
         }
@@ -427,7 +387,12 @@ pub fn roofer2multiroofs(doc: &mut CityJsonDocument) -> OpReport {
     }
 }
 
-fn compute_roof_area(obj: &Value, vertices: &[Value], scale: &[f64; 3], translate: &[f64; 3]) -> f64 {
+fn compute_roof_area(
+    obj: &Value,
+    vertices: &[Value],
+    scale: &[f64; 3],
+    translate: &[f64; 3],
+) -> f64 {
     let geoms = match obj.get("geometry").and_then(|v| v.as_array()) {
         Some(g) => g,
         None => return 0.0,
@@ -509,7 +474,10 @@ fn compute_roof_area(obj: &Value, vertices: &[Value], scale: &[f64; 3], translat
                         }
 
                         let outer_indices: Vec<usize> = match rings[0].as_array() {
-                            Some(arr) => arr.iter().filter_map(|v| v.as_i64().map(|n| n as usize)).collect(),
+                            Some(arr) => arr
+                                .iter()
+                                .filter_map(|v| v.as_i64().map(|n| n as usize))
+                                .collect(),
                             None => continue,
                         };
                         let outer_area = ring_area_3d(&outer_indices, vertices, scale, translate);
@@ -517,7 +485,10 @@ fn compute_roof_area(obj: &Value, vertices: &[Value], scale: &[f64; 3], translat
                         let mut inner_area = 0.0;
                         for ring_idx in 1..rings.len() {
                             if let Some(arr) = rings[ring_idx].as_array() {
-                                let indices: Vec<usize> = arr.iter().filter_map(|v| v.as_i64().map(|n| n as usize)).collect();
+                                let indices: Vec<usize> = arr
+                                    .iter()
+                                    .filter_map(|v| v.as_i64().map(|n| n as usize))
+                                    .collect();
                                 inner_area += ring_area_3d(&indices, vertices, scale, translate);
                             }
                         }
@@ -532,7 +503,12 @@ fn compute_roof_area(obj: &Value, vertices: &[Value], scale: &[f64; 3], translat
     total
 }
 
-fn ring_area_3d(indices: &[usize], vertices: &[Value], scale: &[f64; 3], translate: &[f64; 3]) -> f64 {
+fn ring_area_3d(
+    indices: &[usize],
+    vertices: &[Value],
+    scale: &[f64; 3],
+    translate: &[f64; 3],
+) -> f64 {
     if indices.len() < 3 {
         return 0.0;
     }
@@ -558,6 +534,211 @@ fn ring_area_3d(indices: &[usize], vertices: &[Value], scale: &[f64; 3], transla
         cz += pts[i][0] * pts[j][1] - pts[i][1] * pts[j][0];
     }
     0.5 * (cx * cx + cy * cy + cz * cz).sqrt()
+}
+
+fn ring_volume_contribution(
+    indices: &[usize],
+    vertices: &[Value],
+    scale: &[f64; 3],
+    translate: &[f64; 3],
+) -> f64 {
+    if indices.len() < 3 {
+        return 0.0;
+    }
+    let n = if indices.len() > 1 && indices[0] == indices[indices.len() - 1] {
+        indices.len() - 1
+    } else {
+        indices.len()
+    };
+    if n < 3 {
+        return 0.0;
+    }
+    let get_pt = |idx: usize| -> Option<[f64; 3]> {
+        let v = vertices.get(idx).and_then(|v| v.as_array())?;
+        Some([
+            v.get(0).and_then(|n| n.as_f64()).unwrap_or(0.0) * scale[0] + translate[0],
+            v.get(1).and_then(|n| n.as_f64()).unwrap_or(0.0) * scale[1] + translate[1],
+            v.get(2).and_then(|n| n.as_f64()).unwrap_or(0.0) * scale[2] + translate[2],
+        ])
+    };
+    let p0 = match get_pt(indices[0]) {
+        Some(p) => p,
+        None => return 0.0,
+    };
+    let mut vol = 0.0;
+    for i in 1..n - 1 {
+        let b = match get_pt(indices[i]) {
+            Some(p) => p,
+            None => continue,
+        };
+        let c = match get_pt(indices[i + 1]) {
+            Some(p) => p,
+            None => continue,
+        };
+        // Use p0 as reference point for the tetrahedron.
+        // u = b - p0 and w = c - p0 have small magnitude (span a single polygon),
+        // so the cross product (u × w) involves much smaller numbers than
+        // the origin-based formula (v1 × v2) which would span the entire mesh.
+        let ux = b[0] - p0[0];
+        let uy = b[1] - p0[1];
+        let uz = b[2] - p0[2];
+        let wx = c[0] - p0[0];
+        let wy = c[1] - p0[1];
+        let wz = c[2] - p0[2];
+        // Scalar triple product: p0 · (u × w)
+        let det =
+            p0[0] * (uy * wz - uz * wy) + p0[1] * (uz * wx - ux * wz) + p0[2] * (ux * wy - uy * wx);
+        vol += det;
+    }
+    vol / 6.0
+}
+
+fn compute_volume(obj: &Value, vertices: &[Value], scale: &[f64; 3], translate: &[f64; 3]) -> f64 {
+    let geoms = match obj.get("geometry").and_then(|v| v.as_array()) {
+        Some(g) => g,
+        None => return 0.0,
+    };
+    let mut total = 0.0;
+    for geom in geoms {
+        let geom_type = geom.get("type").and_then(|v| v.as_str()).unwrap_or("");
+        let boundaries = match geom.get("boundaries").and_then(|v| v.as_array()) {
+            Some(b) => b,
+            None => continue,
+        };
+        match geom_type {
+            "Solid" => {
+                for shell in boundaries {
+                    let faces = match shell.as_array() {
+                        Some(f) => f,
+                        None => continue,
+                    };
+                    for face in faces {
+                        let rings = match face.as_array() {
+                            Some(r) => r,
+                            None => continue,
+                        };
+                        for ring in rings {
+                            if let Some(arr) = ring.as_array() {
+                                let indices: Vec<usize> = arr
+                                    .iter()
+                                    .filter_map(|v| v.as_i64().map(|n| n as usize))
+                                    .collect();
+                                total +=
+                                    ring_volume_contribution(&indices, vertices, scale, translate);
+                            }
+                        }
+                    }
+                }
+            }
+            "CompositeSurface" => {
+                for face in boundaries {
+                    let rings = match face.as_array() {
+                        Some(r) => r,
+                        None => continue,
+                    };
+                    for ring in rings {
+                        if let Some(arr) = ring.as_array() {
+                            let indices: Vec<usize> = arr
+                                .iter()
+                                .filter_map(|v| v.as_i64().map(|n| n as usize))
+                                .collect();
+                            total += ring_volume_contribution(&indices, vertices, scale, translate);
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    total.abs()
+}
+
+pub fn add_volume(doc: &mut CityJsonDocument) -> OpReport {
+    if !doc.features.is_empty() {
+        let collapsed = io::collapse(doc);
+        doc.header = collapsed.as_object().cloned().unwrap_or_default();
+        doc.features.clear();
+    }
+
+    let scale: [f64; 3] = doc
+        .header
+        .get("transform")
+        .and_then(|t| t.as_object())
+        .and_then(|t| t.get("scale"))
+        .and_then(|v| v.as_array())
+        .map(|a| {
+            [
+                a.first().and_then(|v| v.as_f64()).unwrap_or(1.0),
+                a.get(1).and_then(|v| v.as_f64()).unwrap_or(1.0),
+                a.get(2).and_then(|v| v.as_f64()).unwrap_or(1.0),
+            ]
+        })
+        .unwrap_or([1.0, 1.0, 1.0]);
+    let translate: [f64; 3] = doc
+        .header
+        .get("transform")
+        .and_then(|t| t.as_object())
+        .and_then(|t| t.get("translate"))
+        .and_then(|v| v.as_array())
+        .map(|a| {
+            [
+                a.first().and_then(|v| v.as_f64()).unwrap_or(0.0),
+                a.get(1).and_then(|v| v.as_f64()).unwrap_or(0.0),
+                a.get(2).and_then(|v| v.as_f64()).unwrap_or(0.0),
+            ]
+        })
+        .unwrap_or([0.0, 0.0, 0.0]);
+    let vertices: Vec<Value> = doc
+        .header
+        .get("vertices")
+        .and_then(|v| v.as_array())
+        .map(|a| a.clone())
+        .unwrap_or_default();
+
+    let city_objects = doc
+        .header
+        .get_mut("CityObjects")
+        .and_then(|v| v.as_object_mut());
+
+    let city_objects = match city_objects {
+        Some(c) => c,
+        None => {
+            return OpReport {
+                summary: "No CityObjects in file".to_string(),
+                affected: 0,
+                is_error: true,
+            }
+        }
+    };
+
+    let mut count = 0;
+    for (_id, obj) in city_objects.iter_mut() {
+        let volume = compute_volume(obj, &vertices, &scale, &translate);
+        if volume > 0.0 {
+            let attrs = obj.get_mut("attributes").and_then(|v| v.as_object_mut());
+            if let Some(attrs) = attrs {
+                attrs.insert(
+                    "+building-volume".to_string(),
+                    serde_json::json!((volume * 1000.0).round() / 1000.0),
+                );
+            } else {
+                let mut new_attrs = Map::new();
+                new_attrs.insert(
+                    "+building-volume".to_string(),
+                    serde_json::json!((volume * 1000.0).round() / 1000.0),
+                );
+                obj.as_object_mut()
+                    .map(|m| m.insert("attributes".to_string(), Value::Object(new_attrs)));
+            }
+            count += 1;
+        }
+    }
+
+    OpReport {
+        summary: format!("Added +building-volume to {} object(s)", count),
+        affected: count,
+        is_error: count == 0,
+    }
 }
 
 #[cfg(test)]
@@ -595,7 +776,12 @@ mod tests {
                     let lod = g.get("lod").and_then(|v| v.as_str()).unwrap();
                     assert_ne!(lod, "0", "Object '{}' has lod=0 geometry", id);
                 }
-                assert_eq!(geoms.len(), 1, "Object '{}' should have exactly 1 geometry", id);
+                assert_eq!(
+                    geoms.len(),
+                    1,
+                    "Object '{}' should have exactly 1 geometry",
+                    id
+                );
             }
         }
         for eid in &expected_ids {
@@ -604,10 +790,7 @@ mod tests {
 
         let exts = doc.header.get("extensions").and_then(|v| v.as_object());
         assert!(exts.is_some(), "extensions should exist");
-        let multiroofs = exts
-            .unwrap()
-            .get("multiroofs")
-            .and_then(|v| v.as_object());
+        let multiroofs = exts.unwrap().get("multiroofs").and_then(|v| v.as_object());
         assert!(multiroofs.is_some(), "multiroofs extension should exist");
 
         let mut expected_doc = io::read_file("../../data/roofer_corrected_b2.city.json").unwrap();
@@ -615,11 +798,41 @@ mod tests {
         expected_doc
             .header
             .insert("extensions".to_string(), ext_val.unwrap());
-        let result_json =
-            serde_json::to_string_pretty(&io::collapse(&doc)).unwrap();
-        let expected_json =
-            serde_json::to_string_pretty(&io::collapse(&expected_doc)).unwrap();
+        let result_json = serde_json::to_string_pretty(&io::collapse(&doc)).unwrap();
+        let expected_json = serde_json::to_string_pretty(&io::collapse(&expected_doc)).unwrap();
         assert_eq!(result_json, expected_json, "Output does not match expected");
+    }
+
+    #[test]
+    fn test_add_volume() {
+        let mut doc = io::read_file("../../data/3dbag_b2.city.json").unwrap();
+        let report = add_volume(&mut doc);
+        assert!(!report.is_error, "add_volume failed: {}", report.summary);
+        assert!(report.affected > 0, "No objects got volume");
+
+        for (id, obj) in io::get_all_city_objects(&doc) {
+            if let Some(attrs) = obj.get("attributes").and_then(|v| v.as_object()) {
+                if let Some(vol) = attrs.get("+building-volume").and_then(|v| v.as_f64()) {
+                    assert!(
+                        vol > 0.0,
+                        "Volume for '{}' should be positive, got {}",
+                        id,
+                        vol
+                    );
+                    if let Some(reference) = attrs.get("b3_volume_lod22").and_then(|v| v.as_f64()) {
+                        let ratio = (vol - reference).abs() / reference;
+                        assert!(
+                            ratio < 0.05,
+                            "Volume for '{}': computed={}, reference={}, ratio={}",
+                            id,
+                            vol,
+                            reference,
+                            ratio
+                        );
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -757,7 +970,10 @@ pub fn validate_schema(doc: &CityJsonDocument) -> OpReport {
     {
         if let Some(exts) = doc.header.get("extensions").and_then(|v| v.as_object()) {
             if !exts.is_empty() {
-                lines.push(" ! extension schemas not fetched (WASM mode), extension validation skipped".to_string());
+                lines.push(
+                    " ! extension schemas not fetched (WASM mode), extension validation skipped"
+                        .to_string(),
+                );
             }
         }
     }
@@ -766,7 +982,11 @@ pub fn validate_schema(doc: &CityJsonDocument) -> OpReport {
 
     for (criterion, val_sum) in results.iter() {
         let icon = if val_sum.is_valid() { "✓" } else { "✗" };
-        let kind = if val_sum.is_warning() { "warning" } else { "error" };
+        let kind = if val_sum.is_warning() {
+            "warning"
+        } else {
+            "error"
+        };
         lines.push(format!(" {} {} [{}]", icon, criterion, kind));
         if val_sum.has_errors() {
             for err in val_sum.get_errors() {
@@ -785,7 +1005,10 @@ pub fn validate_schema(doc: &CityJsonDocument) -> OpReport {
     }
 }
 
-pub fn validate_schema_with_extensions(doc: &CityJsonDocument, extension_schemas_json: &str) -> OpReport {
+pub fn validate_schema_with_extensions(
+    doc: &CityJsonDocument,
+    extension_schemas_json: &str,
+) -> OpReport {
     let collapsed = crate::io::collapse(doc);
     let json_str = serde_json::to_string_pretty(&collapsed).unwrap_or_default();
     let mut validator = cjval::CJValidator::from_str(&json_str);
@@ -795,14 +1018,21 @@ pub fn validate_schema_with_extensions(doc: &CityJsonDocument, extension_schemas
     if !extension_schemas_json.trim().is_empty() {
         if let Ok(exts) = serde_json::from_str::<Vec<serde_json::Value>>(extension_schemas_json) {
             for ext in exts {
-                let name = ext.get("name").and_then(|v| v.as_str()).unwrap_or("unknown");
+                let name = ext
+                    .get("name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown");
                 let schema = ext.get("schema").and_then(|v| v.as_str()).unwrap_or("");
-                
+
                 if schema.starts_with("FETCH_ERROR:") {
-                    lines.push(format!(" ! extension '{}' schema not fetched: {}", name, &schema[13..]));
+                    lines.push(format!(
+                        " ! extension '{}' schema not fetched: {}",
+                        name,
+                        &schema[13..]
+                    ));
                     continue;
                 }
-                
+
                 match validator.add_one_extension_from_str(schema) {
                     Ok(()) => {
                         lines.push(format!(" ✓ extension '{}' schema loaded", name));
@@ -821,7 +1051,11 @@ pub fn validate_schema_with_extensions(doc: &CityJsonDocument, extension_schemas
 
     for (criterion, val_sum) in results.iter() {
         let icon = if val_sum.is_valid() { "✓" } else { "✗" };
-        let kind = if val_sum.is_warning() { "warning" } else { "error" };
+        let kind = if val_sum.is_warning() {
+            "warning"
+        } else {
+            "error"
+        };
         lines.push(format!(" {} {} [{}]", icon, criterion, kind));
         if val_sum.has_errors() {
             for err in val_sum.get_errors() {
@@ -861,8 +1095,7 @@ pub fn set_crs(doc: &mut CityJsonDocument, epsg: &str) -> OpReport {
         None => {
             let mut m = Map::new();
             m.insert("referenceSystem".to_string(), Value::String(url));
-            doc.header
-                .insert("metadata".to_string(), Value::Object(m));
+            doc.header.insert("metadata".to_string(), Value::Object(m));
         }
     }
     OpReport {
