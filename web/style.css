@@ -265,7 +265,7 @@ body {
   background: var(--warning, #fff3cd);
   color: var(--warning-text, #664d03);
   border: 1px solid var(--warning-border, #ffe69c);
-  font-size: var(--text-2, 0.9rem);
+  font-size: 0.75rem;
 }
 
 /* OAT styles [role=alert] with display:flex, which overrides the browser's
