@@ -42,21 +42,15 @@
       </div>
       <div class="welcome-info">
         <p class="welcome-intro">
-          mrio2 prepares <strong>CityJSON</strong> / <strong>CityJSONSeq</strong> files
-          for the
-          <a href="https://github.com/multiroofs" target="_blank" rel="noopener">MultiRoofs</a>
-          project: compute roof area, manage attributes, set the coordinate
-          reference system and validate against the CityJSON schema.
+          mrio prepares <a href="https://cityjson.org">CityJSON/Seq files</a> for the MultiRoofs project.
         </p>
         <p class="welcome-note">
-          Your file is processed entirely in your browser — it is not uploaded
-          or stored anywhere. For large datasets, use the TUI/desktop version
-          from the
-          <a href="https://github.com/multiroofs/mrio2" target="_blank" rel="noopener">project repository</a>.
+          Files are processed locally and are never uploaded or stored anywhere. 
+          For large datasets (> 25 MB), use the TUI/desktop version from the
+          <a href="https://github.com/multiroofs/mrio" target="_blank" rel="noopener">project repository</a>.
         </p>
         <p class="welcome-note welcome-ack">
-          MultiRoofs is a research project co-funded by Interreg. See the
-          <a href="https://github.com/multiroofs" target="_blank" rel="noopener">project on GitHub</a>.
+          <a href="https://multiroofs.nweurope.eu" target="_blank" rel="noopener">MultiRoofs</a> is a research project co-funded by Interreg.
         </p>
       </div>
     </div>
@@ -75,27 +69,39 @@
           </li>
           <li>
             <button
+              data-op="add_from_csv"
+              data-dialog="csv-dialog"
+              title="Add attributes from a CSV file"
+            >
+              Import attributes from CSV
+            </button>
+          </li>
+          <li>
+            <button
               data-op="validate_schema"
               title="Validate against CityJSON schema"
             >
-              Validate schema
+              Validate file
             </button>
           </li>
           <li class="op-separator" role="separator" aria-hidden="true"></li>
           <li>
             <button
-              data-op="add_roof_area"
-              title="Compute and add +roof-total-area attribute"
+              data-op="set_epsg"
+              data-dialog="epsg-dialog"
+              title="Set the coordinate reference system"
             >
-              Add roof area
+              Set CRS
             </button>
           </li>
+          <li class="op-separator" role="separator" aria-hidden="true"></li>
           <li>
             <button
-              data-op="add_volume"
-              title="Compute and add +building-volume attribute"
+              data-op="rename_attribute"
+              data-dialog="rename-attr-dialog"
+              title="Rename an attribute"
             >
-              Attribute: add volume
+              Rename attribute
             </button>
           </li>
           <li>
@@ -109,32 +115,21 @@
           </li>
           <li>
             <button
-              data-op="rename_attribute"
-              data-dialog="rename-attr-dialog"
-              title="Rename an attribute"
+              data-op="add_roof_area"
+              title="Compute and add +roof-total-area attribute"
             >
-              Rename attribute
+              Add roof area
             </button>
           </li>
           <li>
             <button
-              data-op="add_from_csv"
-              data-dialog="csv-dialog"
-              title="Add attributes from a CSV file"
+              data-op="add_volume"
+              title="Compute and add +building-volume attribute"
             >
-              Import attributes from CSV
+              Add volume
             </button>
           </li>
           <li class="op-separator" role="separator" aria-hidden="true"></li>
-          <li>
-            <button
-              data-op="set_epsg"
-              data-dialog="epsg-dialog"
-              title="Set the coordinate reference system"
-            >
-              Set CRS
-            </button>
-          </li>
           <li>
             <button
               data-op="download"
@@ -320,22 +315,10 @@
           <h3 id="validation-title">Schema Validation</h3>
         </header>
         <div id="validation-output" class="validation-list"></div>
-        <details class="validation-help">
-          <summary>What do these checks mean?</summary>
-          <dl>
-            <dt>json_syntax</dt><dd>The file is valid JSON.</dd>
-            <dt>schema</dt><dd>The document conforms to the official CityJSON 2.0.2 JSON schema.</dd>
-            <dt>extensions</dt><dd>Every declared extension schema is available and satisfied.</dd>
-            <dt>parents_children_consistency</dt><dd>CityObjects reference existing parents/children.</dd>
-            <dt>wrong_vertex_index</dt><dd>Geometry boundary indices point to existing vertices.</dd>
-            <dt>semantics_arrays</dt><dd>Per-surface semantic values match the number of surfaces.</dd>
-            <dt>textures</dt><dd>Texture references and vertex indices are valid.</dd>
-            <dt>materials</dt><dd>Material references and vertex indices are valid.</dd>
-            <dt>extra_root_properties</dt><dd>No non-standard properties at the document root.</dd>
-            <dt>duplicate_vertices</dt><dd>No two vertices share identical coordinates (warning only).</dd>
-            <dt>unused_vertices</dt><dd>All vertices are referenced by at least one geometry (warning only).</dd>
-          </dl>
-        </details>
+        <p class="validation-help">
+          Meaning of the errors: see
+          <a href="https://github.com/cityjson/cjval" target="_blank" rel="noopener">github.com/cityjson/cjval</a>.
+        </p>
         <footer>
           <button value="close">Close</button>
         </footer>

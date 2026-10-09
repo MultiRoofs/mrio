@@ -133,7 +133,7 @@ function renderStats(stats) {
 
   if (stats.attribute_inventory.length > 0) {
     html += '<div class="stats-section"><h4>Attributes</h4>';
-    html += '<p class="stats-note">Each row shows one example value for the attribute, and how many objects (and what percentage) contain it. Values may differ between objects.</p>';
+    // html += '<p class="stats-note">Each row shows one example value for the attribute, and how many objects (and what percentage) contain it. Values may differ between objects.</p>';
     html += '<ul class="attr-list">';
     for (const [name, count, sample] of stats.attribute_inventory) {
       const pct = stats.objects_with_attrs > 0

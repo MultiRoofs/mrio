@@ -14,9 +14,10 @@ use mrio_core::ops;
 use mrio_core::stats::{compute_stats, FileStats};
 
 const OPERATION_NAMES: &[&str] = &[
-    "Roofer → MultiRoofs",
+    "Prepare file for MultiRoofs",
     "Validate schema",
     "Add roof area",
+    "Add volume",
     "Delete attribute",
     "Rename attribute",
     "Import attributes from CSV",
@@ -679,97 +680,8 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                     app.right_scroll = app.right_scroll.saturating_sub(10);
                 }
             }
-            KeyCode::Enter => {
-                match app.selected_operation {
-                    0 => {
-                        let report = ops::roofer2multiroofs(&mut app.doc);
-                        app.modified = true;
-                        app.refresh_stats();
-                        app.dialog = Some(Dialog::Message {
-                            text: report.summary,
-                            is_error: report.is_error,
-                        });
-                    }
-                    1 => {
-                        let report = ops::validate_schema(&app.doc);
-                        app.dialog = Some(Dialog::Validation {
-                            text: report.summary,
-                            has_errors: report.is_error,
-                        });
-                    }
-                    2 => {
-                        let report = ops::add_roof_area(&mut app.doc);
-                        app.modified = true;
-                        app.refresh_stats();
-                        app.dialog = Some(Dialog::Message {
-                            text: report.summary,
-                            is_error: report.is_error,
-                        });
-                    }
-                    3 => {
-                        let attrs = collect_attribute_names(app);
-                        if attrs.is_empty() {
-                            app.dialog = Some(Dialog::Message {
-                                text: "No attributes found in any CityObject.".to_string(),
-                                is_error: true,
-                            });
-                        } else {
-                            app.dialog = Some(Dialog::RemoveAttr { attrs, selected: 0 });
-                        }
-                    }
-                    4 => {
-                        let attrs = collect_attribute_names(app);
-                        if attrs.is_empty() {
-                            app.dialog = Some(Dialog::Message {
-                                text: "No attributes found in any CityObject.".to_string(),
-                                is_error: true,
-                            });
-                        } else {
-                            app.dialog = Some(Dialog::RenamePick { attrs, selected: 0 });
-                        }
-                    }
-                    5 => {
-                        app.dialog = Some(Dialog::AddCsv {
-                            input: String::new(),
-                            cursor: 0,
-                        });
-                    }
-                    6 => {
-                        let current = app.stats.crs.rsplit('/').next().unwrap_or("").to_string();
-                        let input = if !current.is_empty()
-                            && current.chars().all(|c| c.is_ascii_digit())
-                        {
-                            current
-                        } else {
-                            String::new()
-                        };
-                        let cursor = input.len();
-                        app.dialog = Some(Dialog::EpsgInput { input, cursor });
-                    }
-                    7 => {
-                        let default = app.default_output_path();
-                        app.dialog = Some(Dialog::Save {
-                            input: default,
-                            cursor: 0,
-                            format: app.output_format,
-                        });
-                    } else {
-                        app.dialog = Some(Dialog::RenamePick { attrs, selected: 0 });
-                    }
-                }
-                4 => {
-                    app.dialog = Some(Dialog::AddCsv {
-                        input: String::new(),
-                        cursor: 0,
-                    });
-                }
-                5 => {
-                    app.dialog = Some(Dialog::EpsgInput {
-                        input: String::new(),
-                        cursor: 0,
-                    });
-                }
-                6 => {
+            KeyCode::Enter => match app.selected_operation {
+                0 => {
                     let report = ops::roofer2multiroofs(&mut app.doc);
                     app.modified = true;
                     app.refresh_stats();
@@ -778,14 +690,69 @@ fn handle_events(app: &mut App) -> Result<(), String> {
                         is_error: report.is_error,
                     });
                 }
-                7 => {
+                1 => {
                     let report = ops::validate_schema(&app.doc);
-                    let has_warnings = report.summary.contains("[warning]");
                     app.dialog = Some(Dialog::Validation {
                         text: report.summary,
                         has_errors: report.is_error,
-                        has_warnings,
                     });
+                }
+                2 => {
+                    let report = ops::add_roof_area(&mut app.doc);
+                    app.modified = true;
+                    app.refresh_stats();
+                    app.dialog = Some(Dialog::Message {
+                        text: report.summary,
+                        is_error: report.is_error,
+                    });
+                }
+                3 => {
+                    let report = ops::add_volume(&mut app.doc);
+                    app.modified = true;
+                    app.refresh_stats();
+                    app.dialog = Some(Dialog::Message {
+                        text: report.summary,
+                        is_error: report.is_error,
+                    });
+                }
+                4 => {
+                    let attrs = collect_attribute_names(app);
+                    if attrs.is_empty() {
+                        app.dialog = Some(Dialog::Message {
+                            text: "No attributes found in any CityObject.".to_string(),
+                            is_error: true,
+                        });
+                    } else {
+                        app.dialog = Some(Dialog::RemoveAttr { attrs, selected: 0 });
+                    }
+                }
+                5 => {
+                    let attrs = collect_attribute_names(app);
+                    if attrs.is_empty() {
+                        app.dialog = Some(Dialog::Message {
+                            text: "No attributes found in any CityObject.".to_string(),
+                            is_error: true,
+                        });
+                    } else {
+                        app.dialog = Some(Dialog::RenamePick { attrs, selected: 0 });
+                    }
+                }
+                6 => {
+                    app.dialog = Some(Dialog::AddCsv {
+                        input: String::new(),
+                        cursor: 0,
+                    });
+                }
+                7 => {
+                    let current = app.stats.crs.rsplit('/').next().unwrap_or("").to_string();
+                    let input =
+                        if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
+                            current
+                        } else {
+                            String::new()
+                        };
+                    let cursor = input.len();
+                    app.dialog = Some(Dialog::EpsgInput { input, cursor });
                 }
                 8 => {
                     let default = app.default_output_path();

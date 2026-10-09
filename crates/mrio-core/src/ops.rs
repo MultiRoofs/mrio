@@ -1,6 +1,5 @@
-use std::collections::{HashMap, HashSet};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::io;
 use crate::model::CityJsonDocument;
@@ -171,7 +170,28 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
         };
 
         let obj_id = record.get(0).unwrap_or_default().to_string();
+        if obj_id.is_empty() {
+            errors.push(format!("Row {}: missing CityObject id", row_idx + 2));
+            error_count += 1;
+            continue;
+        }
+        let values: Vec<String> = (0..attr_names.len())
+            .map(|i| record.get(i + 1).unwrap_or_default().to_string())
+            .collect();
+        if rows.insert(obj_id.clone(), values).is_none() {
+            row_order.push(obj_id);
+        }
+    }
+
+    // Apply all rows in a single pass over the CityObjects.
+    let mut updated_count = 0;
+    let mut matched: HashSet<String> = HashSet::new();
+    for (id, obj) in io::get_all_city_objects_mut(doc) {
+        let values = match rows.get(&id) {
+            Some(v) => v,
+            None => continue,
         };
+        matched.insert(id.clone());
 
         let plain_attrs = obj.get_mut("attributes").and_then(|v| v.as_object_mut());
         if let Some(attrs) = plain_attrs {
@@ -185,6 +205,17 @@ pub fn add_attributes_from_csv(doc: &mut CityJsonDocument, csv_content: &str) ->
                 let val = parse_csv_value(values.get(i).map(String::as_str).unwrap_or(""));
                 new_attrs.insert(attr_name.clone(), val);
             }
+            obj.as_object_mut()
+                .map(|m| m.insert("attributes".to_string(), Value::Object(new_attrs)));
+        }
+        updated_count += 1;
+    }
+
+    // Rows referring to CityObjects that do not exist in the document.
+    for id in &row_order {
+        if !matched.contains(id) {
+            errors.push(format!("CityObject '{}' not found", id));
+            error_count += 1;
         }
     }
 

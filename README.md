@@ -21,7 +21,7 @@ cargo run -p mrio-cli -- data/3dbag_b2.city.jsonl --output-format cityjson   # f
 **Usage:**
 - **Open a file**: `cargo run -p mrio-cli -- <file>`
 - **Operations**: select from the left panel with `↑↓`, press `Enter`
-- **Save**: press `s`, type output path, `f` toggles output format (CityJSON / CityJSONSeq)
+- **Save**: press `s`, type output path, `Tab` toggles output format (CityJSON / CityJSONSeq)
 - **Quit**: `q` (confirms if unsaved)
 
 ### Web application
@@ -50,11 +50,14 @@ Then open http://localhost:8080 in your browser.
 
 | Operation | What it does |
 |-----------|-------------|
-| Attribute: delete | Pick an attribute name from the list → removes it from all CityObjects |
-| Attribute: rename | Pick an attribute, type a new name → renames it everywhere |
-| Attributes: add from CSV | Load a CSV (first column = CityObject ID, headers = attribute names) and add those attributes to matching objects. Accepts `;` or `,` delimiters (auto-detected). |
+| Prepare file for MultiRoofs | Merges all `BuildingPart` objects into their parent `Building`, removes lod=0 geometry, renames `b3_volume` → `+building-volume`, computes total roof surface area → `+roof-total-area`, and adds the `multiroofs` extension. |
 | Validate schema | Runs `cjval` against the file: checks JSON syntax, schema conformance, extension schemas (fetched from URLs), parent-child consistency, vertex indices, semantics arrays, textures, materials, and warns about extra root properties, duplicate/unused vertices. |
-| Roofer → MultiRoofs | Merges all `BuildingPart` objects into their parent `Building`, removes lod=0 geometry, renames `b3_volume` → `+building-volume`, computes total roof surface area → `+roof-total-area`, and adds the `multiroofs` extension. |
+| Add roof area | Computes and adds the `+roof-total-area` attribute to each object. |
+| Add volume | Computes and adds the `+building-volume` attribute to each object. |
+| Delete attribute | Pick an attribute name from the list → removes it from all CityObjects. |
+| Rename attribute | Pick an attribute, type a new name → renames it everywhere. |
+| Import attributes from CSV | Load a CSV (first column = CityObject ID, headers = attribute names) and add those attributes to matching objects. Accepts `;` or `,` delimiters (auto-detected). |
+| Set CRS | Change the EPSG code of the document's coordinate reference system. |
 ## Formats
 
 All operators accept CityJSON (`.json`) and CityJSONSeq (`.jsonl`) as input and output.
