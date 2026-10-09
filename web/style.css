@@ -51,8 +51,10 @@ body {
 
 .drop-zone {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-4);
   min-height: calc(100vh - 60px);
   padding: var(--space-6);
 }
@@ -93,17 +95,28 @@ body {
   margin-bottom: var(--space-5);
 }
 
-.drop-zone-content .welcome-intro,
-.drop-zone-content .welcome-note {
-  margin: var(--space-3) 0 0;
-  font-size: var(--text-2, 0.85rem);
-  color: var(--muted-foreground);
-  max-width: 46rem;
+.welcome-info {
+  max-width: 500px;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--secondary, #f3f4f6);
+  border: 1px solid var(--border, #e5e7eb);
+  color: var(--muted-foreground, #6b7280);
+  font-size: 0.85rem;
   line-height: 1.5;
+  text-align: center;
 }
 
-.drop-zone-content .welcome-ack {
-  font-size: var(--text-1, 0.78rem);
+.welcome-info p {
+  margin: 0 0 var(--space-2);
+}
+
+.welcome-info p:last-child {
+  margin-bottom: 0;
+}
+
+.welcome-info .welcome-ack {
+  font-size: 0.78rem;
   opacity: 0.8;
 }
 
