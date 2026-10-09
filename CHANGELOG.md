@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.4.0 — 2026-10-09
+
+### Added
+- Welcome screen in the web app: what the tool does, a note that files are processed locally (not uploaded), and MultiRoofs/Interreg acknowledgement
+- Large-file warning in the web app (over 20,000 objects) pointing users to the TUI/desktop version
+- "Set CRS" dialog now shows the file's current EPSG code
+- Attribute overview now explains the example value and the count/percentage shown
+- Link to [cjval](https://github.com/cityjson/cjval) for the meaning of validation results
+
+### Changed
+- Renamed and reordered the operations in both the web app and the TUI for clarity; "Validate schema" is now "Validate file"
+- Header in the web app shows `Uploaded file: <name>`
+- Renamed the "CRS: set EPSG" button to "Set CRS"
+- Save dialog uses `Tab` (instead of `f`) to toggle the output format
+- Save default filename keeps the correct extension (`.city.json` / `.city.jsonl`) instead of repeating the input extension
+
+### Fixed
+- Web dialogs no longer re-run their operation on Cancel/Esc after a previous confirm (stale dialog `returnValue`)
+- Web dialogs can no longer be dismissed by clicking outside them; use the buttons
+- Renaming an attribute to an existing name is rejected instead of silently overwriting its values
+- Attribute names are validated (letters, digits and `+ - _ . :` only)
+- CSV import is now linear instead of O(rows × objects), fixing hangs/crashes on large files
+- Imported CSV structure is validated (ID column, headers, duplicate or invalid attribute names)
+- Validation dialog no longer shows a confusing "Warnings" title state
+- Fixed a stray orange bar on the web page caused by the hidden large-file warning element
+
 ## 0.3.0 — 2026-07-23
 
 ### Added
